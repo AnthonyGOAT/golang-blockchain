@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/AnthonyGOAT/golang-blockchain/tree/master/blockchain"
+	"github.com/AnthonyGOAT/golang-blockchain/blockchain"
 )
 
 func main() {
-    chain := InitBlockChain()
+    chain := blockchain.InitBlockChain()
 
     chain.AddBlock("First Block")
     chain.AddBlock("Second Block")
