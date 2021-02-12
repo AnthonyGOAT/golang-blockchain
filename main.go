@@ -1,8 +1,8 @@
 package main
-import (
-    "fmt"
 
-    "github.com/AnthonyGOAT/golang-blockchain/tree/master/blockchain"
+import (
+	"fmt"
+	"github.com/AnthonyGOAT/golang-blockchain/tree/master/blockchain"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
     chain.AddBlock("Second Block")
     chain.AddBlock("Third Block")
 
-    for _, block := range chain.blocks {
+    for _, block := range chain.Blocks {
         fmt.Printf("Previous Hash: %x\n", block.PrevHash)
         fmt.Printf("Data in Block: %s\n", block.Data)
         fmt.Printf("Hash: %x\n", block.Hash)
