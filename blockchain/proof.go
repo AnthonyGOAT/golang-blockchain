@@ -1,4 +1,4 @@
-package BlockChain
+package blockchain
 
 //Take the data from the block
 //create a counter(nonce) which starts 0
