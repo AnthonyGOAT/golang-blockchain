@@ -7,7 +7,15 @@ package blockchain
 
 //Requirements:
 //The first few bytes must contain 0s
-
+import (
+    "bytes"
+    "crypto/sha256"
+    "encoding/binary"
+    "fmt"
+    "log"
+    "math"
+    "math/big"
+)
 const Difficulty = 12
 
 type ProofOfWork struct {
