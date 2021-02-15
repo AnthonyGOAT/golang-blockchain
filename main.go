@@ -2,7 +2,7 @@ package main
 
 import (
 	"os"
-	
+
 	"github.com/AnthonyGOAT/golang-blockchain/cli"
 )
 
