@@ -13,7 +13,6 @@ import (
 )
 
 type CommandLine struct {
-
 }
 
 func (cli *CommandLine) printUsage() {
@@ -91,9 +90,9 @@ func (cli *CommandLine) createBlockChain(address string) {
 	}
 	chain := blockchain.InitBlockChain(address)
 	chain.Database.Close()
-
 	UTXOSet := blockchain.UTXOSet{chain}
 	UTXOSet.Reindex()
+
 
 	fmt.Println("Finished!")
 }
@@ -103,7 +102,7 @@ func (cli *CommandLine) getBalance(address string) {
 		log.Panic("Address is not Valid")
 	}
 	chain := blockchain.ContinueBlockChain(address)
-    UTXOSet := blockchain.UTXOSet{chain}
+	UTXOSet := blockchain.UTXOSet{chain}
 	defer chain.Database.Close()
 
 	balance := 0

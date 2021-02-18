@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+    "fmt"
 	"bytes"
 	"encoding/hex"
 	"log"
@@ -111,18 +112,16 @@ func (u UTXOSet) CountTransactions() int {
 }
 
 func (u UTXOSet) Reindex() {
-    db := u.Blockchain.Database
+	db := u.Blockchain.Database
 
-    u.DeleteByPrefix(utxoPrefix)
+	u.DeleteByPrefix(utxoPrefix)
 
-    UTXO := u.Blockchain.FindUTXO()
+	UTXO := u.Blockchain.FindUTXO()
 
-    err := db.Update(func(txn *badger.Txn) error {
+	err := db.Update(func(txn *badger.Txn) error {
 		for txId, outs := range UTXO {
 			key, err := hex.DecodeString(txId)
-			if err != nil {
-				return err
-			}
+			Handle(err)
 			key = append(utxoPrefix, key...)
 
 			err = txn.Set(key, outs.Serialize())
@@ -209,6 +208,7 @@ func (u *UTXOSet) DeleteByPrefix(prefix []byte) {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchValues = false
 		it := txn.NewIterator(opts)
+        fmt.Println("run")
 		defer it.Close()
 
 		keysForDelete := make([][]byte, 0, collectSize)
