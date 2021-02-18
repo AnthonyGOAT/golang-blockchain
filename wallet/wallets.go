@@ -13,46 +13,47 @@ import (
 const walletFile = "./tmp/wallets.data"
 
 type Wallets struct {
-    Wallets map[string]*Wallet
+	Wallets map[string]*Wallet
 }
 
 func CreateWallets() (*Wallets, error) {
-    wallets := Wallets{}
-    wallets.Wallets = make(map[string]*Wallet)
+	wallets := Wallets{}
+	wallets.Wallets = make(map[string]*Wallet)
 
-    err := wallets.LoadFile()
+	err := wallets.LoadFile()
 
-    return &wallets, err
+	return &wallets, err
 }
 
 func (ws *Wallets) AddWallet() string {
-    wallet := MakeWallet()
-    address := fmt.Sprintf("%s", wallet.Address())
+	wallet := MakeWallet()
+	address := fmt.Sprintf("%s", wallet.Address())
 
-    ws.Wallets[address] = wallet
+	ws.Wallets[address] = wallet
 
-    return address
+	return address
 }
 
 func (ws *Wallets) GetAllAddresses() []string {
-    var addresses []string
+	var addresses []string
 
-    for address := range ws.Wallets {
-        addresses = append(addresses, address)
-    }
+	for address := range ws.Wallets {
+		addresses = append(addresses, address)
+	}
 
-    return addresses
+	return addresses
 }
 
 func (ws Wallets) GetWallet(address string) Wallet {
-    return *ws.Wallets[address]
+	return *ws.Wallets[address]
 }
 
 func (ws *Wallets) LoadFile() error {
-    if _, err := os.Stat(walletFile); os.IsNotExist(err) {
-        return err
-    }
-    var wallets Wallets
+	if _, err := os.Stat(walletFile); os.IsNotExist(err) {
+		return err
+	}
+
+	var wallets Wallets
 
 	fileContent, err := ioutil.ReadFile(walletFile)
 	if err != nil {
@@ -72,18 +73,18 @@ func (ws *Wallets) LoadFile() error {
 }
 
 func (ws *Wallets) SaveFile() {
-    var content bytes.Buffer
-    gob.Register(elliptic.P256())
+	var content bytes.Buffer
 
-    encoder := gob.NewEncoder(&content)
+	gob.Register(elliptic.P256())
 
-    err := encoder.Encode(ws)
-    if err != nil {
-        log.Panic(err)
-    }
+	encoder := gob.NewEncoder(&content)
+	err := encoder.Encode(ws)
+	if err != nil {
+		log.Panic(err)
+	}
 
-    err = ioutil.WriteFile(walletFile, content.Bytes(), 0644)
-    if err != nil {
-        log.Panic(err)
-    }
+	err = ioutil.WriteFile(walletFile, content.Bytes(), 0644)
+	if err != nil {
+		log.Panic(err)
+	}
 }

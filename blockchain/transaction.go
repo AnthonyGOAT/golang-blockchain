@@ -1,7 +1,7 @@
 package blockchain
 
 import (
-    "bytes"
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -13,66 +13,63 @@ import (
 	"math/big"
 	"strings"
 
-    "github.com/AnthonyGOAT/golang-blockchain/wallet"
+	"github.com/AnthonyGOAT/golang-blockchain/wallet"
 )
 
 type Transaction struct {
-    ID []byte
-    Inputs []TxInput
-    Outputs []TxOutput
-}
-
-func (tx Transaction) Serialize() []byte {
-    var encoded bytes.Buffer
-
-    enc := gob.NewEncoder(&encoded)
-
-    err := enc.Encode(tx)
-    if err != nil {
-        log.Panic(err)
-    }
-
-    return encoded.Bytes()
+	ID      []byte
+	Inputs  []TxInput
+	Outputs []TxOutput
 }
 
 func (tx *Transaction) Hash() []byte {
-    var hash [32]byte
+	var hash [32]byte
 
-    txCopy := *tx
-    txCopy.ID = []byte{}
+	txCopy := *tx
+	txCopy.ID = []byte{}
 
-    hash = sha256.Sum256(txCopy.Serialize())
+	hash = sha256.Sum256(txCopy.Serialize())
 
-    return hash[:]
+	return hash[:]
 }
 
+func (tx Transaction) Serialize() []byte {
+	var encoded bytes.Buffer
+
+	enc := gob.NewEncoder(&encoded)
+	err := enc.Encode(tx)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return encoded.Bytes()
+}
 
 func CoinbaseTx(to, data string) *Transaction {
-    if data == "" {
-        randData := make([]byte, 24)
-        _, err := rand.Read(randData)
-        Handle(err)
-        data = fmt.Sprintf("%x", randData)
-    }
+	if data == "" {
+		randData := make([]byte, 24)
+		_, err := rand.Read(randData)
+		Handle(err)
+		data = fmt.Sprintf("%x", randData)
+	}
 
-    txin := TxInput{[]byte{}, -1, nil, []byte(data)}
-    txout := NewTXOutput(20, to)
+	txin := TxInput{[]byte{}, -1, nil, []byte(data)}
+	txout := NewTXOutput(20, to)
 
-    tx := Transaction{nil, []TxInput{txin}, []TxOutput{*txout}}
-    tx.ID = tx.Hash()
+	tx := Transaction{nil, []TxInput{txin}, []TxOutput{*txout}}
+	tx.ID = tx.Hash()
 
-    return &tx
+	return &tx
 }
 
 func NewTransaction(from, to string, amount int, UTXO *UTXOSet) *Transaction {
 	var inputs []TxInput
 	var outputs []TxOutput
 
-    wallets, err := wallet.CreateWallets()
-    Handle(err)
-    w := wallets.GetWallet(from)
-    pubKeyHash := wallet.PublicKeyHash(w.PublicKey)
-
+	wallets, err := wallet.CreateWallets()
+	Handle(err)
+	w := wallets.GetWallet(from)
+	pubKeyHash := wallet.PublicKeyHash(w.PublicKey)
 	acc, validOutputs := UTXO.FindSpendableOutputs(pubKeyHash, amount)
 
 	if acc < amount {
@@ -92,32 +89,32 @@ func NewTransaction(from, to string, amount int, UTXO *UTXOSet) *Transaction {
 	outputs = append(outputs, *NewTXOutput(amount, to))
 
 	if acc > amount {
-		outputs = append(outputs, *NewTXOutput(acc - amount, from))
+		outputs = append(outputs, *NewTXOutput(acc-amount, from))
 	}
 
 	tx := Transaction{nil, inputs, outputs}
 	tx.ID = tx.Hash()
-    UTXO.Blockchain.SignTransaction(&tx, w.PrivateKey)
+	UTXO.Blockchain.SignTransaction(&tx, w.PrivateKey)
 
 	return &tx
 }
 
 func (tx *Transaction) IsCoinbase() bool {
-    return len(tx.Inputs) == 1 && len(tx.Inputs[0].ID) == 0 && tx.Inputs[0].Out == -1
+	return len(tx.Inputs) == 1 && len(tx.Inputs[0].ID) == 0 && tx.Inputs[0].Out == -1
 }
 
 func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transaction) {
-    if tx.IsCoinbase() {
-        return
-    }
+	if tx.IsCoinbase() {
+		return
+	}
 
-    for _, in := range tx.Inputs {
-        if prevTXs[hex.EncodeToString(in.ID)].ID == nil {
-            log.Panic("ERROR: Previous transaction does not exist")
-        }
-    }
+	for _, in := range tx.Inputs {
+		if prevTXs[hex.EncodeToString(in.ID)].ID == nil {
+			log.Panic("ERROR: Previous transaction is not correct")
+		}
+	}
 
-    txCopy := tx.TrimmedCopy()
+	txCopy := tx.TrimmedCopy()
 
 	for inId, in := range txCopy.Inputs {
 		prevTX := prevTXs[hex.EncodeToString(in.ID)]
@@ -131,24 +128,8 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 		signature := append(r.Bytes(), s.Bytes()...)
 
 		tx.Inputs[inId].Signature = signature
-    }
-}
 
-func (tx *Transaction) TrimmedCopy() Transaction {
-	var inputs []TxInput
-	var outputs []TxOutput
-
-	for _, in := range tx.Inputs {
-		inputs = append(inputs, TxInput{in.ID, in.Out, nil, nil})
 	}
-
-	for _, out := range tx.Outputs {
-		outputs = append(outputs, TxOutput{out.Value, out.PubKeyHash})
-	}
-
-	txCopy := Transaction{tx.ID, inputs, outputs}
-
-	return txCopy
 }
 
 func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
@@ -192,6 +173,23 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 	}
 
 	return true
+}
+
+func (tx *Transaction) TrimmedCopy() Transaction {
+	var inputs []TxInput
+	var outputs []TxOutput
+
+	for _, in := range tx.Inputs {
+		inputs = append(inputs, TxInput{in.ID, in.Out, nil, nil})
+	}
+
+	for _, out := range tx.Outputs {
+		outputs = append(outputs, TxOutput{out.Value, out.PubKeyHash})
+	}
+
+	txCopy := Transaction{tx.ID, inputs, outputs}
+
+	return txCopy
 }
 
 func (tx Transaction) String() string {

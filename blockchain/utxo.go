@@ -1,7 +1,6 @@
 package blockchain
 
 import (
-    "fmt"
 	"bytes"
 	"encoding/hex"
 	"log"
@@ -32,7 +31,7 @@ func (u UTXOSet) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[s
 		for it.Seek(utxoPrefix); it.ValidForPrefix(utxoPrefix); it.Next() {
 			item := it.Item()
 			k := item.Key()
-            var v []byte
+			var v []byte
             err := item.Value(func(val []byte) error {
                    v = val
                    return nil
@@ -52,6 +51,7 @@ func (u UTXOSet) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[s
 		return nil
 	})
 	Handle(err)
+
 	return accumulated, unspentOuts
 }
 
@@ -68,21 +68,20 @@ func (u UTXOSet) FindUTXO(pubKeyHash []byte) []TxOutput {
 
 		for it.Seek(utxoPrefix); it.ValidForPrefix(utxoPrefix); it.Next() {
 			item := it.Item()
-            var v []byte
+			var v []byte
             err := item.Value(func(val []byte) error {
                    v = val
                    return nil
             })
 			Handle(err)
 			outs := DeserializeOutputs(v)
-
 			for _, out := range outs.Outputs {
 				if out.IsLockedWithKey(pubKeyHash) {
 					UTXOs = append(UTXOs, out)
 				}
 			}
-		}
 
+		}
 		return nil
 	})
 	Handle(err)
@@ -144,11 +143,11 @@ func (u *UTXOSet) Update(block *Block) {
 					inID := append(utxoPrefix, in.ID...)
 					item, err := txn.Get(inID)
 					Handle(err)
-                    var v []byte
-                    err = item.Value(func(val []byte) error {
-                           v = val
-                           return nil
-                    })
+					var v []byte
+            		err = item.Value(func(val []byte) error {
+                   		v = val
+                   		return nil
+            		})
 					Handle(err)
 
 					outs := DeserializeOutputs(v)
@@ -163,7 +162,6 @@ func (u *UTXOSet) Update(block *Block) {
 						if err := txn.Delete(inID); err != nil {
 							log.Panic(err)
 						}
-
 					} else {
 						if err := txn.Set(inID, updatedOuts.Serialize()); err != nil {
 							log.Panic(err)
@@ -171,7 +169,6 @@ func (u *UTXOSet) Update(block *Block) {
 					}
 				}
 			}
-
 			newOutputs := TxOutputs{}
 			for _, out := range tx.Outputs {
 				newOutputs.Outputs = append(newOutputs.Outputs, out)
@@ -208,7 +205,6 @@ func (u *UTXOSet) DeleteByPrefix(prefix []byte) {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchValues = false
 		it := txn.NewIterator(opts)
-        fmt.Println("run")
 		defer it.Close()
 
 		keysForDelete := make([][]byte, 0, collectSize)

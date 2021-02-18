@@ -3,13 +3,13 @@ package blockchain
 import "crypto/sha256"
 
 type MerkleTree struct {
-    RootNode *MerkleNode
+	RootNode *MerkleNode
 }
 
 type MerkleNode struct {
-    Left *MerkleNode
-    Right *MerkleNode
-    Data []byte
+	Left  *MerkleNode
+	Right *MerkleNode
+	Data  []byte
 }
 
 func NewMerkleNode(left, right *MerkleNode, data []byte) *MerkleNode {
